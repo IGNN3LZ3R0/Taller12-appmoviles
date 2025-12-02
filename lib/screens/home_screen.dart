@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/producto.dart';
 import '../widgets/producto_card.dart';
 import '../widgets/barra_navegacion.dart';
+import 'carrito_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,26 +15,36 @@ class _HomeScreenState extends State<HomeScreen> {
   int _indiceNavegacion = 0;
   String _categoriaSeleccionada = 'Todos';
 
+  void _navegarASeccion(int indice) {
+    if (indice == 3) {
+      // Navegar a la pantalla del carrito
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const CarritoScreen()),
+      ).then((_) {
+        // Actualizar la UI cuando regrese del carrito
+        setState(() {});
+      });
+    } else {
+      setState(() {
+        _indiceNavegacion = indice;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: _buildAppBar(context),
-      // COLUMN: Estructura principal vertical
       body: Column(
         children: [
-          // Contenido principal (se expande)
           Expanded(
             child: _buildContenidoPrincipal(),
           ),
-          // Barra de navegación (altura fija)
           BarraNavegacion(
             indiceActual: _indiceNavegacion,
-            onTap: (indice) {
-              setState(() {
-                _indiceNavegacion = indice;
-              });
-            },
+            onTap: _navegarASeccion,
           ),
         ],
       ),
@@ -41,13 +52,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
-    // MEDIAQUERY: Obtener información del dispositivo
     final screenWidth = MediaQuery.of(context).size.width;
     
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 0,
-      // ROW dentro del título para layout horizontal
       title: Row(
         children: [
           const Icon(Icons.store, color: Colors.blue),
@@ -59,7 +68,6 @@ class _HomeScreenState extends State<HomeScreen> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          // Mostrar ancho de pantalla (para debug/aprendizaje)
           const Spacer(),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -78,6 +86,15 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       actions: [
+        IconButton(
+          icon: const Icon(Icons.shopping_cart_outlined, color: Colors.black),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const CarritoScreen()),
+            ).then((_) => setState(() {}));
+          },
+        ),
         IconButton(
           icon: const Icon(Icons.notifications_outlined, color: Colors.black),
           onPressed: () {},
@@ -190,17 +207,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-              // Contenido principal expandido
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Encabezado
                       _buildEncabezado(),
                       const SizedBox(height: 20),
-                      // Título de sección
                       const Text(
                         'Productos Destacados',
                         style: TextStyle(
@@ -209,7 +223,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      // Grid de productos (RESPONSIVO)
                       _buildGridProductos(),
                     ],
                   ),
@@ -218,19 +231,15 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           );
         } else {
-          // Si es < 900px (móvil), mostrar layout normal
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Encabezado
                 _buildEncabezado(),
                 const SizedBox(height: 20),
-                // Categorías (scroll horizontal)
                 _buildCategorias(),
                 const SizedBox(height: 20),
-                // Título de sección
                 const Text(
                   'Productos Destacados',
                   style: TextStyle(
@@ -239,7 +248,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                // Grid de productos (RESPONSIVO)
                 _buildGridProductos(),
               ],
             ),
@@ -250,10 +258,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildEncabezado() {
-    // LAYOUTBUILDER: Construye UI según el espacio disponible
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Si el ancho es mayor a 600px, mostrar en ROW
         if (constraints.maxWidth > 600) {
           return Row(
             children: [
@@ -263,7 +269,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           );
         }
-        // Si no, mostrar solo el banner principal
         return _buildBannerPrincipal();
       },
     );
@@ -281,7 +286,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         borderRadius: BorderRadius.circular(16),
       ),
-      // STACK: Texto superpuesto sobre el fondo
       child: Stack(
         children: [
           Padding(
@@ -319,7 +323,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          // Icono decorativo posicionado
           Positioned(
             right: 20,
             bottom: 20,
@@ -369,7 +372,6 @@ class _HomeScreenState extends State<HomeScreen> {
     
     return SizedBox(
       height: 40,
-      // ROW con scroll horizontal
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: categorias.length,
@@ -404,27 +406,21 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildGridProductos() {
-    // LAYOUTBUILDER: Determinar número de columnas según el ancho
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Calcular columnas según el ancho disponible
         int columnas;
         double childAspectRatio;
         
         if (constraints.maxWidth >= 1200) {
-          // Desktop grande: 4 columnas
           columnas = 4;
           childAspectRatio = 0.75;
         } else if (constraints.maxWidth >= 900) {
-          // Desktop: 3 columnas
           columnas = 3;
           childAspectRatio = 0.75;
         } else if (constraints.maxWidth >= 600) {
-          // Tablet: 3 columnas
           columnas = 3;
           childAspectRatio = 0.7;
         } else {
-          // Móvil: 2 columnas
           columnas = 2;
           childAspectRatio = 0.65;
         }
